@@ -1,21 +1,13 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
-```{r, include=FALSE, message=FALSE}
 
-  library(Hmisc)
-
-```
 
 ## Loading and preprocessing the data
   
 Set the working directory, first making sure it exists  
 
-```{r, setwd, results='hide'}  
+
+```r
   workingDirectory <- paste("~/Box Sync/Coursera-data-science/",
           "datasciencecoursera/Reproducible_Research/RepDa",
           "ta_PeerAssessment1",
@@ -29,12 +21,12 @@ Set the working directory, first making sure it exists
   # set working directory
   
   setwd(workingDirectory)
-``` 
+```
   
    Now download and unzip the data  
    
-```{r, download.and.unzip, results='hide'}
 
+```r
   dataURL <-
    "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
   
@@ -67,8 +59,6 @@ Set the working directory, first making sure it exists
 
   ## Read the CSV file into a vector
   tRawActivities <- read.csv("activity.csv")
-  
-
 ```
 
 ## What are the mean and median total number of steps taken per day?
@@ -76,44 +66,49 @@ Set the working directory, first making sure it exists
    
   First, get the sums of steps per day.  
   
-```{r, mean1, results='hide'}
 
-  
+```r
   tSplitByDay <- split(tRawActivities,tRawActivities$date,drop=TRUE)
   tStepsByDay <- sapply(tSplitByDay, function(x) {sum(x$steps)})
-
 ```
   
   Next, do a histogram:
   
-```{r}
 
+```r
     hist(tStepsByDay,main = "Histogram of Total Steps Per Day",xlab = "Steps Per Day")
-  
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-2-1.png)\
 
   Then calculate the mean...  
   
-```{r}
-  
+
+```r
   mean(tStepsByDay,na.rm = TRUE)
-  
+```
+
+```
+## [1] 10766.19
 ```
   
   ... and the median.
   
-```{r}
-  
+
+```r
   median(tStepsByDay,na.rm = TRUE)
-  
+```
+
+```
+## [1] 10765
 ```
 
 ## What is the average daily activity pattern?
 
 Prepare a time series plot of the mean steps by day:  
 
-```{r}
-  
+
+```r
   tMeanStepsByDay <- sapply(tSplitByDay, function(x) {mean(x$steps)})
   
   daynums <- seq(1,length(tMeanStepsByDay))
@@ -123,9 +118,9 @@ Prepare a time series plot of the mean steps by day:
         ylab = "Mean Steps",
         main = "Time Series Plot of Mean Steps By Day",
        type="l")
-
-  
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png)\
 
   
     
@@ -136,8 +131,8 @@ Prepare a time series plot of the mean steps by day:
   Note that missing values result in gaps in the time series. We can make the lines continuous by imputing zero values:
   
 
-```{r, results="hide"}
-  
+
+```r
   tMeanStepsByDayImputedZero4NAs <-  impute(tMeanStepsByDay,0)
 
   plot(daynums,tMeanStepsByDayImputedZero4NAs,
@@ -146,9 +141,9 @@ Prepare a time series plot of the mean steps by day:
         main = "Time Series Plot of Mean Steps By Day",
         sub = "(Imputed Zero for NA values)",
        type="l")
-
-  
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-6-1.png)\
 
   
   Although this makes the plot tidyer by connecting the lines, replacing missing values with zeroes is not a very intelligent approach to the missing-values problem. Let's go back to the original data set and replace missing values with daily mean values. This is only a bit more intelligent, given the wide variation in number of steps during the daily intervals, but then, this assignment is already late and my "R" skills are rusty, so let's go with what is easy.  
@@ -158,38 +153,42 @@ Prepare a time series plot of the mean steps by day:
 ### Assessing the proportion of missing values
   
   
-```{r}
-  
-  
+
+```r
   ## count complete cases
   nValuesNAvsNotNA <- complete.cases(tRawActivities)
   nMissingValues <- length(nValuesNAvsNotNA[nValuesNAvsNotNA==FALSE])
   nNotNAs <- length(nValuesNAvsNotNA[nValuesNAvsNotNA==TRUE])
-  
 ```
 
 Complete cases:  
 
-```{r}
-  
+
+```r
   nNotNAs
-  
+```
+
+```
+## [1] 15264
 ```
 
 
 Missing values:  
 
-```{r}
-  
+
+```r
   nMissingValues
-  
+```
+
+```
+## [1] 2304
 ```
 
 
 We'll put it in a histogram to make the contrast more vivid.  
 
-```{r}
-  
+
+```r
   barplot(table(nValuesNAvsNotNA),
           main ="Cases where Values Missing vs Present",
           xaxt="n",
@@ -198,15 +197,16 @@ We'll put it in a histogram to make the contrast more vivid.
        tick=FALSE,
        labels = c("Value Missing","Value Present"),
        at = c(.68,1.89))
-  
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-10-1.png)\
 
 ### Imputing the mean for missing values
 
 Now let's see what happens when we plug up the holes in our data set.  
 
-```{r}
-  
+
+```r
   tActivityWithImputedMean <- tRawActivities
   tActivityWithImputedMean$steps <- 
       impute(tActivityWithImputedMean$steps, 
@@ -216,36 +216,42 @@ Now let's see what happens when we plug up the holes in our data set.
                                       drop=TRUE)
   tStepsByDayWithImputedMean <- sapply(tSplitByDayWithImputedMean, 
                                        function(x) {sum(x$steps)})
-
 ```
   
 New mean is the same as the original with missing values removed:  
 
-```{r}
-  
-  mean(tStepsByDayWithImputedMean)
 
+```r
+  mean(tStepsByDayWithImputedMean)
+```
+
+```
+## [1] 10766.19
 ```
 
   
 New median is now equal to the mean, where before it was just very close:  
 
-```{r}
-  
-  median(tStepsByDayWithImputedMean)
 
+```r
+  median(tStepsByDayWithImputedMean)
+```
+
+```
+## [1] 10766.19
 ```
   
 New histogram looks about the same, but...  
 
-```{r}
-  
+
+```r
     hist(tStepsByDayWithImputedMean,
          main = "Histogram of Total Steps Per Day",
          xlab = "Steps Per Day",
          sub = "Imputed mean for missing values")
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-14-1.png)\
 
 
 ...whereas the bars remain proportional, the frequency scale has now increased.  
@@ -258,8 +264,8 @@ Now we will see if people take more steps on Saturdays and Sundays.
 
 First we do some fancy footwork to classify dates into weekdays (Mon-Fri) and weekends (Sat-Sun).
 
-```{r}
-  
+
+```r
   tActivityWithImputedMean$weekdays <- 
       weekdays(as.Date(tActivityWithImputedMean$date), 
                          abbreviate = TRUE)
@@ -272,7 +278,8 @@ Next we compute the number of steps per 5-minute interval for each of the two ty
 
 First weekdays...  
 
-```{r}
+
+```r
   tWeekdaySteps <- subset(tActivityWithImputedMean,
                           tActivityWithImputedMean$work.or.play=="weekday")
   
@@ -287,7 +294,8 @@ First weekdays...
 
 ...and then weekends.  
 
-```{r}
+
+```r
   tWeekendSteps <- subset(tActivityWithImputedMean,
                           tActivityWithImputedMean$work.or.play=="weekend")
   
@@ -302,7 +310,8 @@ First weekdays...
   
 Now we show the two time series plots, stacked.  
 
-```{r}
+
+```r
   par(mfrow=c(2,1))  
   plot(weekend.intervals,tStepsByIntervalOnWeekend,
         xlab = "Interval",
@@ -314,8 +323,9 @@ Now we show the two time series plots, stacked.
         ylab = "Mean Steps",
         main = "Time Series Plot of Mean Steps By Interval on Weekdays",
        type="l")
-  
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-18-1.png)\
 
 From this we can draw the following tentative conclusions:  
 
